@@ -1,4 +1,4 @@
-import Navbar from "@/components/Navbar"
+import Navbar from "@/components/navbar"
 import PlaneAnimation from "@/components/plane-animation"
 import FeaturedDeals from "@/components/featured-deals"
 import Footer from "@/components/Footer"
