@@ -1,0 +1,459 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@plugin "tailwindcss-animate";
+/* Updated floating animation for slower, more realistic plane movement */
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0px) translateX(0px);
+  }
+  25% {
+    transform: translateY(-15px) translateX(5px);
+  }
+  50% {
+    transform: translateY(-8px) translateX(-5px);
+  }
+  75% {
+    transform: translateY(-20px) translateX(3px);
+  }
+}
+
+.hero-bottom-shadow::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 40%; /* how tall the fade should be */
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.85), transparent);
+  pointer-events: none;
+  z-index: 5;
+}
+
+.animate-float {
+  animation: float 12s ease-in-out infinite;
+}
+
+/* Replaced multiple plane animations with single scroll-triggered plane animation */
+.scroll-plane-container {
+  position: relative;
+  overflow: hidden;
+}
+
+.scroll-plane {
+  transform: translateX(-100%) translateY(-50%);
+  transition: transform 0.1s ease-out;
+}
+
+/* Scroll-triggered plane movement using CSS scroll-timeline */
+@supports (animation-timeline: scroll()) {
+  .scroll-plane {
+    animation: plane-scroll-fly 1s linear;
+    animation-timeline: scroll(root);
+    animation-range: 100vh 200vh;
+  }
+}
+
+@keyframes plane-scroll-fly {
+  0% {
+    transform: translateX(-100%) translateY(-50%);
+  }
+  100% {
+    transform: translateX(120vw) translateY(-50%);
+  }
+}
+
+/* Fallback for browsers without scroll-timeline support */
+@media (prefers-reduced-motion: no-preference) {
+  .scroll-plane {
+    animation: plane-scroll-fly-fallback 4s ease-out;
+    animation-delay: 1s;
+    animation-fill-mode: forwards;
+  }
+}
+
+@keyframes plane-scroll-fly-fallback {
+  0% {
+    transform: translateX(-100%) translateY(-50%);
+  }
+  100% {
+    transform: translateX(120vw) translateY(-50%);
+  }
+}
+
+/* Text erasing animation - initial text fades out as plane moves */
+.initial-text {
+  animation: text-erase 3s ease-in-out forwards;
+  animation-delay: 0.5s;
+}
+
+@keyframes text-erase {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.9);
+    visibility: hidden;
+  }
+}
+
+/* Plane erasing animation - moves from left to right */
+.erasing-plane {
+  transform: translateX(-120%);
+  animation: plane-erase-move 4s ease-in-out forwards;
+  animation-delay: 1.5s;
+}
+
+@keyframes plane-erase-move {
+  0% {
+    transform: translateX(-120%) translateY(-50%);
+  }
+  100% {
+    transform: translateX(120%) translateY(-50%);
+  }
+}
+
+/* Text revealing animations - content appears behind the plane */
+.reveal-text-1 {
+  animation: text-reveal 1s ease-out forwards;
+  animation-delay: 3s;
+}
+
+.reveal-text-2 {
+  animation: text-reveal 1s ease-out forwards;
+  animation-delay: 3.5s;
+}
+
+.reveal-text-3 {
+  animation: text-reveal 1s ease-out forwards;
+  animation-delay: 4s;
+}
+
+@keyframes text-reveal {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Scroll-triggered version for when user scrolls */
+@supports (animation-timeline: scroll()) {
+  .initial-text {
+    animation: text-erase-scroll 1s linear forwards;
+    animation-timeline: scroll(root);
+    animation-range: 100vh 130vh;
+  }
+
+  .erasing-plane {
+    animation: plane-erase-scroll 1s linear forwards;
+    animation-timeline: scroll(root);
+    animation-range: 100vh 140vh;
+  }
+
+  .reveal-text-1 {
+    animation: text-reveal-scroll 1s linear forwards;
+    animation-timeline: scroll(root);
+    animation-range: 120vh 140vh;
+  }
+
+  .reveal-text-2 {
+    animation: text-reveal-scroll 1s linear forwards;
+    animation-timeline: scroll(root);
+    animation-range: 130vh 150vh;
+  }
+
+  .reveal-text-3 {
+    animation: text-reveal-scroll 1s linear forwards;
+    animation-timeline: scroll(root);
+    animation-range: 140vh 160vh;
+  }
+}
+
+@keyframes text-erase-scroll {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.9);
+    visibility: hidden;
+  }
+}
+
+@keyframes plane-erase-scroll {
+  0% {
+    transform: translateX(-120%) translateY(-50%);
+  }
+  100% {
+    transform: translateX(120%) translateY(-50%);
+  }
+}
+
+@keyframes text-reveal-scroll {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Text overlay animations that appear on the plane body */
+.plane-text-overlay {
+  animation: text-on-plane 1s ease-out forwards;
+  animation-delay: 2s;
+}
+
+@keyframes text-on-plane {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Scroll-triggered text overlay */
+@supports (animation-timeline: scroll()) {
+  .plane-text-overlay {
+    animation: text-on-plane-scroll 1s linear forwards;
+    animation-timeline: scroll(root);
+    animation-range: 120vh 160vh;
+  }
+}
+
+@keyframes text-on-plane-scroll {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+}
+
+:root {
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --radius: 0.625rem;
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.145 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.145 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.985 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.396 0.141 25.723);
+  --destructive-foreground: oklch(0.637 0.237 25.331);
+  --border: oklch(0.269 0 0);
+  --input: oklch(0.269 0 0);
+  --ring: oklch(0.439 0 0);
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(0.269 0 0);
+  --sidebar-ring: oklch(0.439 0 0);
+}
+
+@theme inline {
+  /* optional: --font-sans, --font-serif, --font-mono if they are applied in the layout.tsx */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+/* Adding horizontal scroll styling for service cards */
+.horizontal-scroll-container {
+  scrollbar-width: thin;
+  scrollbar-color: #d1d5db #f3f4f6;
+}
+
+.horizontal-scroll-container::-webkit-scrollbar {
+  height: 8px;
+}
+
+.horizontal-scroll-container::-webkit-scrollbar-track {
+  background: #f3f4f6;
+  border-radius: 4px;
+}
+
+.horizontal-scroll-container::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 4px;
+}
+
+.horizontal-scroll-container::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* Service card hover animations */
+.service-card {
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.service-card:hover {
+  transform: scale(1.05) translateY(-8px);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+.service-card img {
+  transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.service-card:hover img {
+  transform: scale(1.1);
+}
+
+/* Smooth scroll behavior for horizontal container */
+.horizontal-scroll-container {
+  scroll-behavior: smooth;
+}
+
+/* Auto-scroll animation for service cards */
+@keyframes auto-scroll {
+  0% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(-50%);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+.service-cards-auto-scroll {
+  animation: auto-scroll 30s linear infinite;
+  animation-play-state: running;
+}
+
+.service-cards-auto-scroll:hover {
+  animation-play-state: paused;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+
+@keyframes appear {
+  from { opacity: 0; transform: translateY(5px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.animate-appear {
+  animation: appear 0.3s ease-out forwards;
+}
+
+.aboreto-regular {
+  font-family: "Aboreto", system-ui;
+  font-weight: 400;
+  font-style: normal;
+  font-stretch: extra-expanded;
+}
