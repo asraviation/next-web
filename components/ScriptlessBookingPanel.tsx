@@ -11,10 +11,12 @@ interface Airport {
   label: string;
 }
 
+
+const taxipage = "https://asr-taxipage.vercel.app/"; // ✅ base URL
 /** Configure where the booking lands */
 const BOOK_DEST =
   process.env.NEXT_PUBLIC_FLEET_URL /* e.g. https://asraviation.com/fleet-new */
-  || 'http://localhost:3001/fleet-new';
+  || `${taxipage}fleet-new`;
 
 /** Build a URL with encoded query params */
 function buildBookingURL(base: string, payload: Record<string, string>) {
