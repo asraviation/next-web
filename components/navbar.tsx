@@ -25,6 +25,8 @@ type AnyUser = {
   [k: string]: unknown;
 };
 
+const taxipage = "https://asr-taxipage.vercel.app/"; // ✅ base URL
+
 export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -104,19 +106,19 @@ export default function Navbar() {
                 HOME
               </Link>
               <Link
-                href="http://localhost:3001/fleet"
+                href={`${taxipage}fleet`}
                 className="text-white font-medium hover:text-yellow-500 transition-colors tracking-wide text-sm md:text-base"
               >
                 FLEET
               </Link>
               <Link
-                href="http://localhost:3001/about"
+                href={`${taxipage}about`}
                 className="text-white font-medium hover:text-yellow-500 transition-colors tracking-wide text-sm md:text-base"
               >
                 ABOUT
               </Link>
               <Link
-                href="http://localhost:3001/contact"
+                href={`${taxipage}contact`}
                 className="text-white font-medium hover:text-yellow-500 transition-colors tracking-wide text-sm md:text-base"
               >
                 CONTACT
@@ -136,7 +138,7 @@ export default function Navbar() {
                 </div>
               ) : (
                 <Link
-                  href="http://localhost:3001/login"
+                  href={`${taxipage}login`}
                   className="text-white font-medium hover:text-yellow-500 transition-colors tracking-wide text-sm md:text-base"
                 >
                   LOGIN
@@ -206,20 +208,20 @@ export default function Navbar() {
                 HOME
               </Link>
               <Link
-                href="http://localhost:3001/fleet"
+                href={`${taxipage}fleet`}
                 className="text-gray-50 text-lg font-semibold hover:text-yellow-400 transition-colors tracking-wide border-b border-gray-700 pb-4"
               >
                 FLEET
               </Link>
               <a
-                href="http://localhost:3001/about"
+                href={`${taxipage}about`}
                 className="text-gray-50 text-lg font-semibold hover:text-yellow-400 transition-colors tracking-wide border-b border-gray-700 pb-4"
                 rel="noopener"
               >
                 ABOUT
               </a>
               <a
-                href="http://localhost:3001/contact"
+                href={`${taxipage}contact`}
                 className="text-gray-50 text-lg font-semibold hover:text-yellow-400 transition-colors tracking-wide border-b border-gray-700 pb-4"
                 rel="noopener"
               >
@@ -238,7 +240,7 @@ export default function Navbar() {
                 </div>
               ) : (
                 <a
-                  href="http://localhost:3001/login"
+                  href={`${taxipage}login`}
                   className="text-gray-50 text-lg font-semibold hover:text-yellow-400 transition-colors tracking-wide border-b border-gray-700 pb-4"
                   rel="noopener"
                 >
