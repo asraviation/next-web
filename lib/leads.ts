@@ -15,13 +15,29 @@ const DATA_DIR = path.join(process.cwd(), "data");
 const DATA_FILE = path.join(DATA_DIR, "leads.json");
 
 async function readAll(): Promise<Lead[]> {
+  let raw: string;
+
   try {
-    const raw = await fs.readFile(DATA_FILE, "utf8");
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
+    raw = await fs.readFile(DATA_FILE, "utf8");
   } catch (err: any) {
     if (err?.code === "ENOENT") return [];
     throw err;
+  }
+
+  try {
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (err) {
+    // A truncated or hand-edited file must not take the endpoint down with a
+    // 500. Quarantine it and carry on from empty; nothing is overwritten until
+    // the next write, so the bad copy is preserved for inspection.
+    const quarantine = `${DATA_FILE}.corrupt.${Date.now()}`;
+    await fs.rename(DATA_FILE, quarantine).catch(() => {});
+    console.error(
+      `[leads] leads.json was not valid JSON — moved to ${path.basename(quarantine)}`,
+      err
+    );
+    return [];
   }
 }
 

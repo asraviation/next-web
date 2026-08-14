@@ -100,10 +100,10 @@ export default function Footer() {
                 <Link href="/" className="hover:text-[#DAA520] transition-colors">
                   Home
                 </Link>
-                <Link href="http://localhost:3001/" className="hover:text-[#DAA520] transition-colors">
+                <Link href="/" className="hover:text-[#DAA520] transition-colors">
                   Fleet
                 </Link>
-                <Link href="http://localhost:3001/about" className="hover:text-[#DAA520] transition-colors">
+                <Link href="/about" className="hover:text-[#DAA520] transition-colors">
                   About Us
                 </Link>
               </div>
@@ -112,7 +112,7 @@ export default function Footer() {
                 <Link href="/faq" className="hover:text-[#DAA520] transition-colors">
                   FAQ
                 </Link>
-                <Link href="http://localhost:3001/contact" className="hover:text-[#DAA520] transition-colors">
+                <Link href="/contact" className="hover:text-[#DAA520] transition-colors">
                   Contact Us
                 </Link>
                 <Link href="/terms" className="hover:text-[#DAA520] transition-colors">
@@ -175,11 +175,8 @@ export default function Footer() {
                 <Link href="/blog" className="hover:text-[#DAA520] transition-colors">
                   Blog
                 </Link>
-                <Link href="/careers" className="hover:text-[#DAA520] transition-colors">
-                  Career
-                </Link>
                 <Link href="/leg-deals" className="hover:text-[#DAA520] transition-colors">
-                  Leg Deals
+                  Ferry Deals
                 </Link>
               </div>
 

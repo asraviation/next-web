@@ -34,13 +34,27 @@ const DATA_DIR = path.join(process.cwd(), "data");
 const DATA_FILE = path.join(DATA_DIR, "deals.json");
 
 async function readAll(): Promise<StoredDeal[]> {
+  let raw: string;
+
   try {
-    const raw = await fs.readFile(DATA_FILE, "utf8");
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
+    raw = await fs.readFile(DATA_FILE, "utf8");
   } catch (err: any) {
     if (err?.code === "ENOENT") return [];
     throw err;
+  }
+
+  try {
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (err) {
+    // Quarantine rather than 500 — see the same guard in lib/leads.ts.
+    const quarantine = `${DATA_FILE}.corrupt.${Date.now()}`;
+    await fs.rename(DATA_FILE, quarantine).catch(() => {});
+    console.error(
+      `[deals] deals.json was not valid JSON — moved to ${path.basename(quarantine)}`,
+      err
+    );
+    return [];
   }
 }
 

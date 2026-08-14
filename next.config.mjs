@@ -6,14 +6,25 @@ const isProd = process.env.NODE_ENV === "production";
 // dev overlay). They weaken script-src, but the directive still blocks script
 // from any origin not listed here, which is the bulk of the benefit. Tightening
 // further means migrating to nonce-based CSP via middleware.
+// Google Identity Services pulls a script, a stylesheet, an iframe and avatar
+// images from these origins. Every one has to be allowed explicitly or the
+// sign-in button silently fails to render.
+const GOOGLE_SCRIPT = "https://accounts.google.com https://apis.google.com";
+const GOOGLE_STYLE = "https://accounts.google.com";
+const GOOGLE_FRAME = "https://accounts.google.com";
+const GOOGLE_CONNECT = "https://accounts.google.com";
+const GOOGLE_IMG = "https://lh3.googleusercontent.com https://ssl.gstatic.com";
+
 const csp = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://accounts.google.com https://apis.google.com",
-  "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob: https:",
+  `script-src 'self' 'unsafe-inline' 'unsafe-eval' ${GOOGLE_SCRIPT}`,
+  // style-src-elem falls back to style-src; GSI loads /gsi/style from Google.
+  `style-src 'self' 'unsafe-inline' ${GOOGLE_STYLE}`,
+  `style-src-elem 'self' 'unsafe-inline' ${GOOGLE_STYLE}`,
+  `img-src 'self' data: blob: https: ${GOOGLE_IMG}`,
   "font-src 'self' data:",
-  "connect-src 'self' https://accounts.google.com",
-  "frame-src https://accounts.google.com",   // Google Sign-In renders in an iframe
+  `connect-src 'self' ${GOOGLE_CONNECT}`,
+  `frame-src ${GOOGLE_FRAME}`,               // Google Sign-In renders in an iframe
   "form-action 'self'",
   "frame-ancestors 'none'",                  // clickjacking
   "base-uri 'self'",
