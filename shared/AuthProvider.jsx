@@ -44,18 +44,36 @@ function readFromStorageAndCookies() {
   return { user, tokens, accessToken };
 }
 
-function assertSingleProviderInstance() {
-  if (typeof window !== 'undefined') {
+/**
+ * Warn if a second provider mounts.
+ *
+ * This must run as an effect, not in the render body: React re-renders a
+ * component many times, so a render-phase check flagged every re-render of the
+ * SAME provider as a duplicate — that is where the "Duplicate provider
+ * detected" spam came from (61 renders, one provider). The cleanup clears the
+ * flag so remounts are not mistaken for duplicates either.
+ */
+function useSingleProviderInstance() {
+  useEffect(() => {
     if (window.__ASR_AUTH_PROVIDER_MOUNTED__) {
       console.warn('[NEXT][AuthProvider] Duplicate provider detected.');
-    } else {
-      window.__ASR_AUTH_PROVIDER_MOUNTED__ = true;
+      return undefined;
     }
-  }
+
+    window.__ASR_AUTH_PROVIDER_MOUNTED__ = true;
+    return () => {
+      window.__ASR_AUTH_PROVIDER_MOUNTED__ = false;
+    };
+  }, []);
 }
 
+/** Debug logging, kept out of production consoles. */
+const debugLog = (...args) => {
+  if (process.env.NODE_ENV !== 'production') console.log(...args);
+};
+
 export function AuthProvider({ children, initialUser = null }) {
-  assertSingleProviderInstance();
+  useSingleProviderInstance();
 
   const [user, setUser] = useState(initialUser || null);
   const [accessToken, setAccessToken] = useState(null);
@@ -70,7 +88,7 @@ export function AuthProvider({ children, initialUser = null }) {
     setAuthLoaded(true);
     didInitRef.current = true;
 
-    console.log('[NEXT][AuthProvider:init]', {
+    debugLog('[NEXT][AuthProvider:init]', {
       authLoaded: true,
       contextUser: u || initialUser || null,
       ls_asr_user: u || null,
@@ -94,7 +112,7 @@ export function AuthProvider({ children, initialUser = null }) {
       // STICKY: once true, stays true
       setAuthLoaded((prev) => prev || true);
 
-      console.log('[NEXT][AuthProvider:change]', {
+      debugLog('[NEXT][AuthProvider:change]', {
         from: src,
         authLoaded: true,
         contextUserNow: u || null,

@@ -15,8 +15,6 @@ import { SESSION_COOKIE, readSessionToken } from "@/lib/session";
 export const ALLOWED_EMAILS: string[] = (
   process.env.ADMIN_ALLOWED_EMAILS ||
   [
-    "vedic20052005@gmail.com",
-    "kanishkvalecha76@gmail.com",
     "asrofficial18@gmail.com",
     "work.asraviation@gmail.com",
     "sales@asraviation.com",
