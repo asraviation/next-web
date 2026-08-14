@@ -118,7 +118,7 @@ export default function Navbar() {
                 ABOUT
               </Link>
               <Link
-                href={`${taxipage}contact`}
+                href="/contact"
                 className="text-white font-medium hover:text-yellow-500 transition-colors tracking-wide text-sm md:text-base"
               >
                 CONTACT
@@ -221,7 +221,7 @@ export default function Navbar() {
                 ABOUT
               </a>
               <a
-                href={`${taxipage}contact`}
+                href="/contact"
                 className="text-gray-50 text-lg font-semibold hover:text-yellow-400 transition-colors tracking-wide border-b border-gray-700 pb-4"
                 rel="noopener"
               >

@@ -1,6 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import BookingModal, { type BookingDraft } from "@/components/BookingModal"
+import Pagination from "@/components/Pagination"
 
 interface Deal {
   id: string
@@ -13,9 +15,35 @@ interface Deal {
   image: string
 }
 
+const DEALS_PER_PAGE = 6
+
 export default function FeaturedDeals() {
   const [deals, setDeals] = useState<Deal[]>([])
   const [loading, setLoading] = useState(true)
+  const [page, setPage] = useState(1)
+  // Pending request raised against a deal; drives the sign-in + confirm modal.
+  const [draft, setDraft] = useState<BookingDraft | null>(null)
+
+  /** Turn a published deal into a booking request. */
+  const requestDeal = (deal: Deal) => {
+    setDraft({
+      product: "charter",
+      trip: "one",
+      from: deal.from,
+      to: deal.to,
+      date: deal.date,
+      time: deal.time,
+      source: "featured-deal",
+      deal: {
+        id: Number(deal.id) || 0,
+        route: `${deal.from} → ${deal.to}`,
+        date: deal.date,
+        time: deal.time,
+        aircraft: deal.aircraft,
+        perSeat: deal.price,
+      },
+    })
+  }
 
   useEffect(() => {
     // Fetch deals from API with fallback to defaults
@@ -55,7 +83,8 @@ export default function FeaturedDeals() {
       ]
 
       try {
-        const res = await fetch("http://127.0.0.1:8000/deals", {
+        // Served by app/api/deals — the same store the admin dashboard writes to.
+        const res = await fetch("/api/deals", {
           // Avoid caching during development; adjust if needed
           cache: "no-store",
         })
@@ -76,8 +105,8 @@ export default function FeaturedDeals() {
           to: d.to ?? d.destination ?? "",
           date: d.date ?? d.departure_date ?? "",
           time: d.time ?? d.departure_time ?? "",
-          aircraft: d.aircraft ?? d.aircraft_type ?? "",
-          price: Number(d.price ?? d.amount ?? 0),
+          aircraft: d.aircraft ?? d.plane ?? d.aircraft_type ?? "",
+          price: Number(d.price ?? d.perSeat ?? d.amount ?? 0),
           image: d.image ?? d.image_url ?? "/jet-deals.png",
         })).filter(d => d.from && d.to)
 
@@ -131,7 +160,9 @@ export default function FeaturedDeals() {
         <>
           <div className="horizontal-scroll-container overflow-x-auto pb-8">
             <div className="flex space-x-6 px-8 min-w-max">
-              {deals.map((deal) => (
+              {deals
+                .slice((page - 1) * DEALS_PER_PAGE, page * DEALS_PER_PAGE)
+                .map((deal) => (
                 <div
                   key={deal.id}
                   className="deal-card bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer w-80"
@@ -182,8 +213,11 @@ export default function FeaturedDeals() {
                         <p className="text-xs text-gray-500">Price</p>
                         <p className="text-xl font-bold text-gray-900">₹{deal.price.toLocaleString()}</p>
                       </div>
-                      <button className="bg-yellow-600 hover:bg-yellow-700 text-white px-6 py-2 rounded-lg font-semibold transition-colors duration-200">
-                        Book Now
+                      <button
+                        onClick={() => requestDeal(deal)}
+                        className="bg-yellow-600 hover:bg-yellow-700 text-white px-6 py-2 rounded-lg font-semibold transition-colors duration-200"
+                      >
+                        Request
                       </button>
                     </div>
                   </div>
@@ -192,13 +226,20 @@ export default function FeaturedDeals() {
             </div>
           </div>
 
-          <div className="text-center mt-12">
-            <button className="bg-yellow-600 hover:bg-yellow-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors duration-200">
-              Explore More Deals
-            </button>
+          <div className="px-8">
+            <Pagination
+              page={page}
+              pageSize={DEALS_PER_PAGE}
+              total={deals.length}
+              onChange={setPage}
+              label="deals"
+            />
           </div>
         </>
       )}
+
+      {/* Sign in with Google, then submit — same flow as the booking panel */}
+      <BookingModal draft={draft} onClose={() => setDraft(null)} />
     </div>
   )
 }

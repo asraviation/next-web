@@ -2,6 +2,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 // IMPORTANT: For this import to work in TypeScript, enable `"resolveJsonModule": true` in tsconfig.json
 import airportsData from '../airports.json';
+import BookingModal, { type BookingDraft } from '@/components/BookingModal';
 
 type ProductType = 'charter' | 'seat' | 'helicopter';
 type TripType = 'one' | 'round' | 'multi';
@@ -9,25 +10,14 @@ type TripType = 'one' | 'round' | 'multi';
 interface Airport {
   id: number | string;
   label: string;
+  /** Former names kept searchable after de-duplication, e.g. "Bangalore" -> BLR. */
+  alt?: string[];
 }
 
 
-const taxipage = "https://asr-taxipage.vercel.app/"; // ✅ base URL
-/** Configure where the booking lands */
-const BOOK_DEST =
-  process.env.NEXT_PUBLIC_FLEET_URL /* e.g. https://asraviation.com/fleet-new */
-  || `${taxipage}fleet-new`;
-
-/** Build a URL with encoded query params */
-function buildBookingURL(base: string, payload: Record<string, string>) {
-  const url = new URL(base, typeof window !== 'undefined' ? window.location.origin : 'http://localhost');
-  const params = new URLSearchParams();
-  Object.entries(payload).forEach(([k, v]) => {
-    if (v != null && String(v).trim() !== '') params.set(k, String(v).trim());
-  });
-  url.search = params.toString();
-  return url.toString();
-}
+// Booking used to hand off to an external Vercel page. It is now handled
+// in-app: BookingModal posts to /api/bookings, which files the request in the
+// admin Leads inbox and lets the customer track its status.
 
 export default function ScriptlessBookingPanel() {
   const [show, setShow] = useState(false);
@@ -48,6 +38,9 @@ export default function ScriptlessBookingPanel() {
   // Airports dataset (static import from ../airports.json)
   const [airports] = useState<Airport[]>(airportsData as Airport[]);
   const [airportsLoaded] = useState(true);
+
+  // Pending booking shown in the confirmation modal.
+  const [draft, setDraft] = useState<BookingDraft | null>(null);
 
   // ultra-sensitive reveal within hero
   useEffect(() => {
@@ -93,13 +86,37 @@ export default function ScriptlessBookingPanel() {
     }
   })();
 
+  /**
+   * Origin and destination must differ — except on a multi-trip, where
+   * returning to the starting point is a legitimate itinerary.
+   * Compared on IATA code where present so "Delhi (DEL), Indira Gandhi" and
+   * "New Delhi (DEL), Indira Gandhi" are recognised as the same airport.
+   */
+  const sameAirport = useMemo(() => {
+    if (trip === 'multi') return false;
+    if (!from.trim() || !to.trim()) return false;
+
+    const key = (s: string) => {
+      const code = s.match(/\(([A-Z0-9]{2,4})\)/);
+      return code ? code[1] : s.toLowerCase().replace(/[^a-z0-9]+/g, '');
+    };
+    return key(from) === key(to);
+  }, [from, to, trip]);
+
+  /**
+   * Open the in-app booking flow. Previously this navigated to an external
+   * Vercel page; the request now goes to our own /api/bookings and lands in
+   * the admin Leads inbox, and the customer can track its status.
+   */
   const bookNow = () => {
     if (!from.trim() || !to.trim()) { alert('Please select both From and To.'); return; }
+    if (sameAirport) {
+      alert('Origin and destination cannot be the same. Choose a different airport, or switch to Multi Trip.');
+      return;
+    }
     if (!dateStr.trim() || !timeStr.trim()) { alert('Please select date and time.'); return; }
 
-    const payload = { product, trip, from, to, date: dateStr, time: timeStr };
-    const url = buildBookingURL(BOOK_DEST, payload);
-    window.location.href = url;
+    setDraft({ product, trip, from, to, date: formattedDate || dateStr, time: timeStr });
   };
 
   return (
@@ -169,10 +186,20 @@ export default function ScriptlessBookingPanel() {
         </div>
 
         {/* Row 3: centered CTA */}
-        <div className={`mt-6 flex justify-center`}>
+        <div className={`mt-6 flex flex-col items-center gap-2`}>
+          {sameAirport && (
+            <p role="alert" className="text-sm text-red-600 text-center">
+              Origin and destination cannot be the same — switch to Multi Trip for a return to the same airport.
+            </p>
+          )}
           <button
             onClick={bookNow}
-            className={`min-w-[200px] h-12 px-8 bg-[#F2B400] hover:bg-[#E0A600] text-white font-semibold rounded-xl shadow-md transition text-base`}
+            disabled={sameAirport}
+            className={`min-w-[200px] h-12 px-8 font-semibold rounded-xl shadow-md transition text-base ${
+              sameAirport
+                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                : 'bg-[#F2B400] hover:bg-[#E0A600] text-white'
+            }`}
           >
             Book Now
           </button>
@@ -236,13 +263,26 @@ export default function ScriptlessBookingPanel() {
         </div>
 
         {/* CTA full-width (center by default) */}
+        {sameAirport && (
+          <p role="alert" className="mt-4 text-sm text-red-600 text-center">
+            Origin and destination cannot be the same — switch to Multi Trip for a return to the same airport.
+          </p>
+        )}
         <button
           onClick={bookNow}
-          className={`w-full mt-4 h-12 px-8 bg-[#F2B400] hover:bg-[#E0A600] text-white font-semibold rounded-xl shadow-md transition text-base`}
+          disabled={sameAirport}
+          className={`w-full mt-4 h-12 px-8 font-semibold rounded-xl shadow-md transition text-base ${
+            sameAirport
+              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              : 'bg-[#F2B400] hover:bg-[#E0A600] text-white'
+          }`}
         >
           Book Now
         </button>
       </div>
+
+      {/* In-app booking flow (replaces the old external redirect) */}
+      <BookingModal draft={draft} onClose={() => setDraft(null)} />
 
       {/* GLOBAL STYLE: hide native date/time icons & spinners (keeps only our left icon) */}
       <style jsx global>{`
@@ -414,9 +454,14 @@ function Field({
   // Normalize: lower-case, strip punctuation/extra spaces
   const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
 
-  // Precompute a search key once per airport
+  // Precompute a search key once per airport. Aliases are folded in so a
+  // merged duplicate is still reachable by its old name ("Bangalore" -> BLR).
   const indexed = useMemo(
-    () => options.map((o) => ({ ...o, _search: norm(o.label || String(o)) })),
+    () =>
+      options.map((o) => ({
+        ...o,
+        _search: norm([o.label || String(o), ...(o.alt || [])].join(" ")),
+      })),
     [options]
   );
 

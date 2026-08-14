@@ -1,65 +1,36 @@
 "use client";
 
 import React, { useRef, useEffect, useState } from "react";
+import Link from "next/link";
+import { SERVICES } from "@/lib/services";
 
 const SCROLL_SPEED = 60; // px/second
 
-const serviceCards = [
-  {
-    img: "/Frame91.png",
-    alt: "Luxury Private Jet Interior",
-    title: "Luxury Travel",
-    desc: "Experience ultimate comfort in our premium private jets",
-    obj: "0% 50%",
-  },
-  {
-    img: "/Frame90.png",
-    alt: "Helicopter Wedding Service",
-    title: "Wedding Services",
-    desc: "Make your special day unforgettable with helicopter arrivals",
-    obj: "20% 50%",
-  },
-  {
-    img: "/Frame95.png",
-    alt: "Helicopter Sightseeing Tours",
-    title: "Sightseeing Tours",
-    desc: "Discover breathtaking views from above",
-    obj: "40% 50%",
-  },
-  {
-    img: "/Frame93.png",
-    alt: "Mountain Helicopter Services",
-    title: "Mountain Adventures",
-    desc: "Access remote destinations with ease and style",
-    obj: "60% 50%",
-  },
-  {
-    img: "/Frame92.png",
-    alt: "Medical Helicopter Services",
-    title: "Medical Services",
-    desc: "Emergency medical transport when time matters most",
-    obj: "80% 50%",
-  },
-  {
-    img: "/Frame94.png",
-    alt: "Aerial Photography Services",
-    title: "Aerial Photography",
-    desc: "Capture stunning aerial perspectives for any occasion",
-    obj: "100% 50%",
-  },
-];
+// Cards come from the shared catalogue so a card and its page never drift.
+const serviceCards = SERVICES.map((s) => ({
+  slug: s.slug,
+  img: s.image,
+  alt: s.alt,
+  title: s.title,
+  desc: s.desc,
+  obj: s.obj,
+}));
 
 export default function ExclusiveServices() {
   const scrollRef = useRef(null);
   const [isHovered, setIsHovered] = useState(false);
 
-  // Duplicate service cards for infinity effect
-  const cardContent = (
+  // Duplicated for the infinite-marquee effect. The second copy is hidden from
+  // assistive tech so the same links are not announced twice.
+  const renderCards = (copy) => (
     <>
-      {serviceCards.map((card, i) => (
-        <div
-          key={i}
-          className="service-card group relative w-80 h-64 rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-500 hover:scale-105 cursor-pointer select-none"
+      {serviceCards.map((card) => (
+        <Link
+          key={`${copy}-${card.slug}`}
+          href={`/services/${card.slug}`}
+          aria-hidden={copy === "clone"}
+          tabIndex={copy === "clone" ? -1 : undefined}
+          className="service-card group relative block w-80 h-64 rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-500 hover:scale-105 cursor-pointer select-none"
         >
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10"></div>
           <img
@@ -72,8 +43,14 @@ export default function ExclusiveServices() {
           <div className="absolute bottom-0 left-0 right-0 p-6 z-20 text-white">
             <h3 className="text-xl font-bold mb-2">{card.title}</h3>
             <p className="text-sm opacity-90">{card.desc}</p>
+            <span className="mt-2 inline-flex items-center gap-1 text-sm font-semibold text-yellow-300 opacity-0 group-hover:opacity-100 transition-opacity">
+              Learn more
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+              </svg>
+            </span>
           </div>
-        </div>
+        </Link>
       ))}
     </>
   );
@@ -166,8 +143,8 @@ export default function ExclusiveServices() {
           }}
         >
           <div className="flex space-x-8 px-8 min-w-max" style={{ display: "inline-flex" }}>
-            {cardContent}
-            {cardContent}
+            {renderCards("main")}
+            {renderCards("clone")}
           </div>
         </div>
       </div>

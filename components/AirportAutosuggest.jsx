@@ -24,6 +24,8 @@ export default function AirportAutosuggest({
   apiUrl,               // optional: e.g. "/api/airports" -> returns [{code, city, name}]
   className = "",
   maxItems = 8,
+  iconSrc,              // optional: image shown inside the field, on the left
+  inputClassName,       // optional: replaces the default input styling
 }) {
   const internalRef = useRef(null);
   const ref = inputRef || internalRef;
@@ -50,6 +52,8 @@ export default function AirportAutosuggest({
             code: a.code || a.iata || a.IATA || "",
             city: a.city || a.City || a.location || "",
             name: a.name || a.airport || a.label || "",
+            // Former names kept searchable after de-duplication.
+            alt: Array.isArray(a.alt) ? a.alt : [],
           })).filter(a => a.code || a.city || a.name);
           setAirports(mapped);
         }
@@ -71,7 +75,8 @@ export default function AirportAutosuggest({
       .filter(a =>
         (a.code && a.code.toLowerCase().includes(q)) ||
         (a.city && a.city.toLowerCase().includes(q)) ||
-        (a.name && a.name.toLowerCase().includes(q))
+        (a.name && a.name.toLowerCase().includes(q)) ||
+        (a.alt || []).some(alias => alias.toLowerCase().includes(q))
       )
       .slice(0, maxItems);
   }, [value, airports, maxItems]);
@@ -120,8 +125,17 @@ export default function AirportAutosuggest({
     }
   };
 
+  const defaultInputClass = `w-full h-12 ${
+    iconSrc ? "pl-12 pr-4" : "px-4"
+  } bg-white rounded-xl border focus:border-emerald-400 outline-none`;
+
   return (
     <div className={`relative ${className}`}>
+      {iconSrc && (
+        <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center pointer-events-none">
+          <img src={iconSrc} alt="" className="w-5 h-5" />
+        </div>
+      )}
       <input
         ref={ref}
         value={value}
@@ -129,7 +143,7 @@ export default function AirportAutosuggest({
         onFocus={() => setOpen(true)}
         onKeyDown={onKeyDown}
         placeholder={placeholder}
-        className="w-full h-12 px-4 bg-white rounded-xl border focus:border-emerald-400 outline-none"
+        className={inputClassName ?? defaultInputClass}
         autoComplete="off"
       />
       {/* Dropdown */}
